@@ -54,7 +54,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background: transparent;
   padding: 1rem;
 }
 
@@ -69,6 +69,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   gap: 2.5rem;
+  box-shadow: 0 28px 60px rgba(46, 90, 72, 0.08);
 }
 
 .hero {
@@ -102,7 +103,7 @@ h1 {
   gap: 0.75rem;
   background: #fff;
   color: #3c4043;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.85rem 1.5rem;
   font-size: 0.95rem;
@@ -115,7 +116,7 @@ h1 {
 }
 
 .google-btn:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 16px 32px rgba(46, 90, 72, 0.1);
   transform: translateY(-1px);
 }
 

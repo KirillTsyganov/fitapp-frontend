@@ -9,6 +9,20 @@ function getToken() {
   return localStorage.getItem(TOKEN_KEY)
 }
 
+export function authFetch(path, options = {}) {
+  const token = getToken()
+  const headers = new Headers(options.headers ?? {})
+
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+
+  return fetch(`${API_URL}${path}`, {
+    ...options,
+    headers,
+  })
+}
+
 export function setToken(token) {
   localStorage.setItem(TOKEN_KEY, token)
   authChecked = false
@@ -23,9 +37,7 @@ export async function checkAuthStatus() {
     return false
   }
   try {
-    const res = await fetch(`${API_URL}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const res = await authFetch('/api/auth/me')
     if (res.ok) {
       user.value = await res.json()
     } else {

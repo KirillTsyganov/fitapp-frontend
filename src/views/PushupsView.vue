@@ -1,65 +1,153 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useAuth } from '@/composables/useAuth.js'
+import { computed, onMounted, ref } from 'vue'
+import { authFetch, useAuth } from '@/composables/useAuth.js'
 
 const { user, logout } = useAuth()
 
-// ── Daily state ──────────────────────────────────────────────────────────────
-const TODAY = new Date().toISOString().slice(0, 10) // "YYYY-MM-DD"
-const STORAGE_KEY = `pushlog_${TODAY}`
-
-function loadDayState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch {}
-  return null
+function getLocalDateString(date = new Date()) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
-function saveDayState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+function getDateContext() {
+  const today = new Date()
+  return {
+    date: getLocalDateString(today),
+    tzOffsetMinutes: today.getTimezoneOffset(),
+  }
 }
 
+function formatSessionDate(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number)
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(year, month - 1, day))
+}
+
+const sessionId = ref(null)
+const sessionDate = ref(getDateContext().date)
 const dailyTarget = ref(null)
 const completedReps = ref(0)
-
-onMounted(() => {
-  const saved = loadDayState()
-  if (saved) {
-    dailyTarget.value = saved.target
-    completedReps.value = saved.completedReps ?? 0
-  }
-})
-
-// ── Target generation ─────────────────────────────────────────────────────────
-function generateTarget() {
-  const target = Math.floor(Math.random() * (150 - 80 + 1)) + 80
-  dailyTarget.value = target
-  completedReps.value = 0
-  saveDayState({ target, completedReps: 0 })
-}
-
-// ── Rep submission ────────────────────────────────────────────────────────────
 const repsInput = ref('')
 const inputError = ref('')
+const loading = ref(true)
+const saving = ref(false)
+const loadError = ref('')
+const saveError = ref('')
 
-function submitReps() {
+function resetSession() {
+  sessionId.value = null
+  dailyTarget.value = null
+  completedReps.value = 0
+  repsInput.value = ''
+}
+
+function applySession(session) {
+  sessionId.value = session.session_id
+  sessionDate.value = session.date
+  dailyTarget.value = session.target_pushups
+  completedReps.value = session.total_reps
+}
+
+async function loadTodaySession() {
+  loading.value = true
+  loadError.value = ''
+
+  const params = new URLSearchParams()
+  const dateContext = getDateContext()
+  params.set('date', dateContext.date)
+  params.set('tzOffsetMinutes', String(dateContext.tzOffsetMinutes))
+
+  try {
+    const res = await authFetch(`/api/sessions/today?${params.toString()}`)
+    if (!res.ok) {
+      throw new Error('Unable to load session')
+    }
+
+    const data = await res.json()
+    sessionDate.value = data.date ?? dateContext.date
+
+    if (data.session === null) {
+      resetSession()
+      sessionDate.value = data.date ?? dateContext.date
+    } else {
+      applySession(data)
+    }
+  } catch {
+    loadError.value = 'Could not sync today\'s target. Please try again.'
+    resetSession()
+    sessionDate.value = dateContext.date
+  } finally {
+    loading.value = false
+  }
+}
+
+async function generateTarget() {
+  saving.value = true
+  saveError.value = ''
+
+  try {
+    const res = await authFetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(getDateContext()),
+    })
+    if (!res.ok) {
+      throw new Error('Unable to create target')
+    }
+
+    const data = await res.json()
+    applySession(data)
+  } catch {
+    saveError.value = 'Could not create today\'s target. Please try again.'
+  } finally {
+    saving.value = false
+  }
+}
+
+async function submitReps() {
   const reps = parseInt(repsInput.value, 10)
   if (!reps || reps <= 0) {
     inputError.value = 'Enter a valid number of reps'
     return
   }
+  if (!sessionId.value) {
+    inputError.value = 'Generate today\'s target first'
+    return
+  }
+
+  saving.value = true
   inputError.value = ''
-  completedReps.value += reps
-  repsInput.value = ''
-  saveDayState({ target: dailyTarget.value, completedReps: completedReps.value })
+  saveError.value = ''
+
+  try {
+    const res = await authFetch(`/api/sessions/${sessionId.value}/sets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reps }),
+    })
+    if (!res.ok) {
+      throw new Error('Unable to save reps')
+    }
+
+    const data = await res.json()
+    completedReps.value = data.total_reps
+    repsInput.value = ''
+  } catch {
+    saveError.value = 'Could not save this set. Please try again.'
+  } finally {
+    saving.value = false
+  }
 }
 
-function handleKeydown(e) {
-  if (e.key === 'Enter') submitReps()
+function handleKeydown(event) {
+  if (event.key === 'Enter') submitReps()
 }
 
-// ── Progress ──────────────────────────────────────────────────────────────────
 const RADIUS = 90
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
@@ -68,9 +156,7 @@ const progressPct = computed(() => {
   return Math.min(completedReps.value / dailyTarget.value, 1)
 })
 
-const dashOffset = computed(() => {
-  return CIRCUMFERENCE * (1 - progressPct.value)
-})
+const dashOffset = computed(() => CIRCUMFERENCE * (1 - progressPct.value))
 
 const remaining = computed(() => {
   if (!dailyTarget.value) return 0
@@ -78,13 +164,18 @@ const remaining = computed(() => {
 })
 
 const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? Infinity))
+const sessionDateLabel = computed(() => formatSessionDate(sessionDate.value))
+
+onMounted(loadTodaySession)
 </script>
 
 <template>
   <div class="page">
-    <!-- Header -->
     <header class="header">
-      <span class="brand">💪 PushLog</span>
+      <div>
+        <span class="brand">💪 PushLog</span>
+        <p class="header-date">{{ sessionDateLabel }}</p>
+      </div>
       <div class="user-area">
         <span class="user-name">{{ user?.name ?? user?.email ?? 'You' }}</span>
         <button class="logout-btn" @click="logout">Sign out</button>
@@ -92,20 +183,34 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
     </header>
 
     <main class="main">
-      <!-- No target yet -->
-      <div v-if="!dailyTarget" class="generate-section">
-        <div class="generate-icon">🎯</div>
-        <h2>Ready for today?</h2>
-        <p>Hit the button to get your daily pushup target.</p>
-        <button class="btn-primary pulse" @click="generateTarget">Generate Today's Target</button>
+      <div v-if="loading" class="state-card">
+        <div class="generate-icon">☁️</div>
+        <h2>Syncing today</h2>
+        <p>Checking your target for {{ sessionDateLabel }}.</p>
       </div>
 
-      <!-- Target set -->
+      <div v-else-if="loadError" class="state-card">
+        <div class="generate-icon">⚠️</div>
+        <h2>Sync paused</h2>
+        <p>{{ loadError }}</p>
+        <button class="btn-primary" @click="loadTodaySession">Try again</button>
+      </div>
+
+      <div v-else-if="!dailyTarget" class="generate-section">
+        <div class="generate-icon">🎯</div>
+        <h2>Ready for today?</h2>
+        <p>Generate one target for {{ sessionDateLabel }} and keep it synced across your devices.</p>
+        <button class="btn-primary pulse" :disabled="saving" @click="generateTarget">
+          {{ saving ? 'Generating…' : "Generate Today's Target" }}
+        </button>
+        <p v-if="saveError" class="input-error">{{ saveError }}</p>
+      </div>
+
       <div v-else class="tracker">
-        <!-- Circular progress -->
+        <div class="session-chip">Tracked for {{ sessionDateLabel }}</div>
+
         <div class="ring-wrapper">
           <svg class="ring" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <!-- Track -->
             <circle
               cx="100"
               cy="100"
@@ -114,7 +219,6 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
               stroke="var(--bg-muted)"
               stroke-width="12"
             />
-            <!-- Progress arc -->
             <circle
               cx="100"
               cy="100"
@@ -134,7 +238,6 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
           </div>
         </div>
 
-        <!-- Stats row -->
         <div class="stats">
           <div class="stat">
             <span class="stat-value">{{ dailyTarget }}</span>
@@ -152,12 +255,10 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
           </div>
         </div>
 
-        <!-- Completion banner -->
         <div v-if="isComplete" class="complete-banner">
           🎉 Target crushed! Great work today.
         </div>
 
-        <!-- Rep submission -->
         <div class="submit-section">
           <p class="submit-label">Log a set</p>
           <div class="submit-row">
@@ -168,15 +269,18 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
               max="999"
               placeholder="Reps done"
               class="rep-input"
+              :disabled="saving"
               @keydown="handleKeydown"
             />
-            <button class="btn-primary" @click="submitReps">Add</button>
+            <button class="btn-primary" :disabled="saving" @click="submitReps">
+              {{ saving ? 'Saving…' : 'Add' }}
+            </button>
           </div>
           <p v-if="inputError" class="input-error">{{ inputError }}</p>
+          <p v-if="saveError" class="input-error">{{ saveError }}</p>
         </div>
 
-        <!-- Regenerate -->
-        <button class="btn-ghost" @click="generateTarget">↺ New target for today</button>
+        <button class="btn-ghost" @click="loadTodaySession">Refresh from server</button>
       </div>
     </main>
   </div>
@@ -190,20 +294,26 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
   flex-direction: column;
 }
 
-/* ── Header ── */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-surface);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
 }
 
 .brand {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
+}
+
+.header-date {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.1rem;
 }
 
 .user-area {
@@ -218,22 +328,22 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
 }
 
 .logout-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.85);
   border: 1px solid var(--border);
   color: var(--text-muted);
-  border-radius: 6px;
-  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
   font-size: 0.8rem;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: border-color 0.2s, color 0.2s, transform 0.1s;
 }
 
 .logout-btn:hover {
   border-color: var(--accent);
   color: var(--text);
+  transform: translateY(-1px);
 }
 
-/* ── Main ── */
 .main {
   flex: 1;
   display: flex;
@@ -242,14 +352,24 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
   padding: 2rem 1rem;
 }
 
-/* ── Generate section ── */
-.generate-section {
+.state-card,
+.generate-section,
+.tracker {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  box-shadow: 0 28px 60px rgba(46, 90, 72, 0.08);
+}
+
+.generate-section,
+.state-card {
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  max-width: 340px;
+  max-width: 360px;
+  padding: 2.4rem 2rem;
 }
 
 .generate-icon {
@@ -257,28 +377,40 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
   line-height: 1;
 }
 
-.generate-section h2 {
+.generate-section h2,
+.state-card h2 {
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--text);
 }
 
-.generate-section p {
+.generate-section p,
+.state-card p {
   color: var(--text-muted);
   font-size: 1rem;
 }
 
-/* ── Tracker ── */
 .tracker {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  padding: 2rem;
 }
 
-/* ── Progress ring ── */
+.session-chip {
+  align-self: stretch;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  color: var(--accent-strong);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 .ring-wrapper {
   position: relative;
   width: 220px;
@@ -317,7 +449,6 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
   color: var(--text-muted);
 }
 
-/* ── Stats ── */
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -326,7 +457,7 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
 }
 
 .stat {
-  background: var(--bg-surface);
+  background: rgba(255, 255, 255, 0.72);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.9rem 0.5rem;
@@ -349,10 +480,9 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
   letter-spacing: 0.06em;
 }
 
-/* ── Complete banner ── */
 .complete-banner {
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.35);
+  background: rgba(21, 128, 61, 0.12);
+  border: 1px solid rgba(21, 128, 61, 0.24);
   color: var(--success);
   border-radius: 10px;
   padding: 0.75rem 1.25rem;
@@ -362,7 +492,6 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
   width: 100%;
 }
 
-/* ── Submit section ── */
 .submit-section {
   width: 100%;
   display: flex;
@@ -383,7 +512,7 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
 
 .rep-input {
   flex: 1;
-  background: var(--bg-surface);
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.75rem 1rem;
@@ -404,11 +533,10 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
 }
 
 .input-error {
-  color: #f87171;
+  color: #c2410c;
   font-size: 0.8rem;
 }
 
-/* ── Buttons ── */
 .btn-primary {
   background: var(--accent);
   color: #fff;
@@ -418,17 +546,24 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: filter 0.2s, transform 0.1s;
+  transition: filter 0.2s, transform 0.1s, box-shadow 0.2s;
   white-space: nowrap;
+  box-shadow: 0 16px 30px rgba(31, 143, 106, 0.18);
 }
 
 .btn-primary:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.08);
   transform: translateY(-1px);
 }
 
 .btn-primary:active {
   transform: translateY(0);
+}
+
+.btn-primary:disabled,
+.rep-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .btn-ghost {
@@ -446,7 +581,6 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
   color: var(--text);
 }
 
-/* ── Utilities ── */
 .text-success {
   color: var(--success) !important;
 }
@@ -458,5 +592,28 @@ const isComplete = computed(() => completedReps.value >= (dailyTarget.value ?? I
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
   50% { box-shadow: 0 0 0 12px transparent; }
+}
+
+@media (max-width: 640px) {
+  .header {
+    align-items: flex-start;
+    gap: 1rem;
+    flex-direction: column;
+  }
+
+  .user-area {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tracker,
+  .generate-section,
+  .state-card {
+    padding: 1.5rem;
+  }
+
+  .submit-row {
+    flex-direction: column;
+  }
 }
 </style>
