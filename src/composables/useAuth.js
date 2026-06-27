@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 
+const API_URL = import.meta.env.VITE_API_URL ?? ''
 const TOKEN_KEY = 'pushlog_jwt'
 const user = ref(null)
 let authChecked = false
@@ -22,7 +23,7 @@ export async function checkAuthStatus() {
     return false
   }
   try {
-    const res = await fetch('/api/auth/me', {
+    const res = await fetch(`${API_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (res.ok) {

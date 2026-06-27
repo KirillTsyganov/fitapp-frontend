@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { checkAuthStatus } from '@/composables/useAuth.js'
 
 const router = useRouter()
+const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 onMounted(async () => {
   const authenticated = await checkAuthStatus()
@@ -22,7 +23,7 @@ onMounted(async () => {
         <p class="tagline">Hit your daily reps. Track your grind.</p>
       </div>
 
-      <a href="/api/auth/google" class="google-btn">
+      <a :href="`${API_URL}/api/auth/google`" class="google-btn">
         <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
