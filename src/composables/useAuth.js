@@ -34,6 +34,7 @@ export async function checkAuthStatus() {
     }
   } catch {
     user.value = null
+    return false
   }
   authChecked = true
   return !!user.value
