@@ -1,8 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { authFetch, useAuth } from '@/composables/useAuth.js'
-
-const { user, logout } = useAuth()
+import { authFetch } from '@/composables/useAuth.js'
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear()
@@ -174,17 +172,6 @@ onMounted(loadTodaySession)
 
 <template>
   <div class="page">
-    <header class="header">
-      <div>
-        <span class="brand">💪 PushLog</span>
-        <p class="header-date">{{ sessionDateLabel }}</p>
-      </div>
-      <div class="user-area">
-        <span class="user-name">{{ user?.name ?? user?.email ?? 'You' }}</span>
-        <button class="logout-btn" @click="logout">Sign out</button>
-      </div>
-    </header>
-
     <main class="main">
       <div v-if="loading" class="state-card">
         <div class="generate-icon">☁️</div>
@@ -295,56 +282,6 @@ onMounted(loadTodaySession)
   background: var(--bg);
   display: flex;
   flex-direction: column;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(16px);
-}
-
-.brand {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.header-date {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  margin-top: 0.1rem;
-}
-
-.user-area {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.user-name {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.logout-btn {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  border-radius: 999px;
-  padding: 0.45rem 0.85rem;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, transform 0.1s;
-}
-
-.logout-btn:hover {
-  border-color: var(--accent);
-  color: var(--text);
-  transform: translateY(-1px);
 }
 
 .main {

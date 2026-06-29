@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/views/LoginView.vue'
 import PushupsView from '@/views/PushupsView.vue'
+import ProgressView from '@/views/ProgressView.vue'
 import AuthCallbackView from '@/views/AuthCallbackView.vue'
 import { checkAuthStatus } from '@/composables/useAuth.js'
 
@@ -21,6 +22,12 @@ const router = createRouter({
       path: '/',
       name: 'pushups',
       component: PushupsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/progress',
+      name: 'progress',
+      component: ProgressView,
       meta: { requiresAuth: true },
     },
   ],
