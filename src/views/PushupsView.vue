@@ -110,6 +110,7 @@ async function generateTarget() {
 }
 
 async function submitReps() {
+  if (saving.value) return
   const reps = parseInt(repsInput.value, 10)
   if (!reps || reps <= 0) {
     inputError.value = 'Enter a valid number of reps'
@@ -124,11 +125,13 @@ async function submitReps() {
   inputError.value = ''
   saveError.value = ''
 
+  const clientSetId = crypto.randomUUID()
+
   try {
     const res = await authFetch(`/api/sessions/${sessionId.value}/sets`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reps }),
+      body: JSON.stringify({ reps, client_id: clientSetId }),
     })
     if (!res.ok) {
       throw new Error('Unable to save reps')
