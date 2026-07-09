@@ -10,7 +10,7 @@ onMounted(() => {
   const token = window.location.hash.slice(1)
   if (token) {
     setToken(token)
-    router.replace({ name: 'pushups' })
+    router.replace({ name: 'circuit' })
   } else {
     router.replace({ name: 'login' })
   }
