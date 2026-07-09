@@ -1,6 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { authFetch } from '@/composables/useAuth.js'
+import { useSessions } from '@/composables/useSessions.js'
+
+const { updateSessionInCache } = useSessions()
 
 // Circuit definition (mirrors backend CIRCUIT constant)
 const CIRCUIT_EXERCISES = [
@@ -103,6 +106,14 @@ async function generateTarget() {
 
     const data = await res.json()
     applySession(data)
+    updateSessionInCache({
+      session_id: data.session_id,
+      date: data.date,
+      rounds_completed: data.rounds_completed ?? 0,
+      movement_points: data.movement_points ?? 0,
+      target_rounds: data.target_rounds,
+      is_completed: false,
+    })
   } catch {
     saveError.value = "Could not create today's circuit. Please try again."
   } finally {
@@ -116,6 +127,13 @@ async function logRound() {
     saveError.value = "Generate today's circuit first"
     return
   }
+
+  // Optimistic update: reflect the round immediately in the UI
+  const prevRoundsCompleted = roundsCompleted.value
+  const prevMovementPoints = movementPoints.value
+  const optimisticRounds = roundsCompleted.value + 1
+  roundsCompleted.value = optimisticRounds
+  movementPoints.value = Math.min(Math.round((optimisticRounds / targetRounds.value) * 100), 100)
 
   saving.value = true
   saveError.value = ''
@@ -131,10 +149,22 @@ async function logRound() {
     if (!res.ok) throw new Error('Unable to log round')
 
     const data = await res.json()
+    // Reconcile with server truth
     roundsCompleted.value = data.rounds_completed
     movementPoints.value = data.movement_points
     targetRounds.value = data.target_rounds
+    updateSessionInCache({
+      session_id: sessionId.value,
+      date: sessionDate.value,
+      rounds_completed: data.rounds_completed,
+      movement_points: data.movement_points,
+      target_rounds: data.target_rounds,
+      is_completed: data.movement_points >= 100,
+    })
   } catch {
+    // Revert optimistic update on failure
+    roundsCompleted.value = prevRoundsCompleted
+    movementPoints.value = prevMovementPoints
     saveError.value = 'Could not log round. Please try again.'
   } finally {
     saving.value = false
@@ -269,7 +299,7 @@ onMounted(loadTodaySession)
           :disabled="saving || isComplete"
           @click="logRound"
         >
-          {{ saving ? 'Logging…' : 'Log 1 Round' }}
+          {{ saving ? 'Syncing…' : 'Log 1 Round' }}
         </button>
         <p v-if="saveError" class="input-error">{{ saveError }}</p>
 

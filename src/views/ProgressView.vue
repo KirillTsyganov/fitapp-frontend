@@ -1,29 +1,8 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { authFetch } from '@/composables/useAuth.js'
+import { computed, onMounted } from 'vue'
+import { useSessions } from '@/composables/useSessions.js'
 
-const sessions = ref([])
-const loading = ref(true)
-const loadError = ref('')
-
-async function loadSessions() {
-  loading.value = true
-  loadError.value = ''
-  try {
-    const params = new URLSearchParams({ tzOffsetMinutes: new Date().getTimezoneOffset() })
-    const res = await authFetch(`/api/sessions?${params}`)
-    if (!res.ok) throw new Error('Failed to load sessions')
-    const data = await res.json()
-    // Accept both an array or a wrapped { sessions: [] }
-    sessions.value = (Array.isArray(data) ? data : data.sessions ?? [])
-      .slice()
-      .sort((a, b) => (a.date < b.date ? -1 : 1))
-  } catch {
-    loadError.value = 'Could not load your history. Please try again.'
-  } finally {
-    loading.value = false
-  }
-}
+const { sessions, loading, loadError, loadSessions } = useSessions()
 
 onMounted(loadSessions)
 
@@ -100,7 +79,7 @@ const avgScore = computed(() => {
         <div class="state-icon">⚠️</div>
         <h2>Couldn't load</h2>
         <p>{{ loadError }}</p>
-        <button class="btn-primary" @click="loadSessions">Try again</button>
+        <button class="btn-primary" @click="() => loadSessions(true)">Try again</button>
       </div>
 
       <div v-else-if="sessions.length === 0" class="state-card">
