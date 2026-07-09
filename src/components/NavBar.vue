@@ -33,14 +33,14 @@ function closeMenu() {
   <nav class="sidebar" :class="{ open: isOpen }">
     <div class="sidebar-brand">
       <span class="brand-icon">💪</span>
-      <span class="brand-name">PushLog</span>
+      <span class="brand-name">FitLog</span>
     </div>
 
     <div class="nav-links">
       <RouterLink
         to="/"
         class="nav-link"
-        :class="{ active: route.name === 'pushups' }"
+        :class="{ active: route.name === 'circuit' }"
         @click="closeMenu"
       >
         <span class="nav-icon">🎯</span>

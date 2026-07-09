@@ -39,28 +39,21 @@ const chartWidth = computed(() =>
 
 const totalH = computed(() => CHART_H + PAD.top + PAD.bottom)
 
-const maxReps = computed(() =>
-  Math.max(...sessions.value.map((s) => Math.max(s.total_reps ?? 0, s.target_pushups ?? 0)), 1),
-)
-
-function barH(reps) {
-  return Math.max(((reps ?? 0) / maxReps.value) * CHART_H, 2)
+// Movement Points is already 0-100; chart Y-axis is fixed at that scale
+function barH(pts) {
+  return Math.max(((pts ?? 0) / 100) * CHART_H, 2)
 }
 
-function barY(reps) {
-  return PAD.top + CHART_H - barH(reps)
+function barY(pts) {
+  return PAD.top + CHART_H - barH(pts)
 }
 
 function barX(i) {
   return PAD.left + i * (BAR_W + BAR_GAP)
 }
 
-function targetY(target) {
-  return PAD.top + CHART_H - barH(target)
-}
-
 function isComplete(s) {
-  return (s.total_reps ?? 0) >= (s.target_pushups ?? 0)
+  return s.is_completed || (s.movement_points ?? 0) >= 100
 }
 
 function shortDate(dateStr) {
@@ -77,7 +70,6 @@ function weekday(dateStr) {
   )
 }
 
-const totalReps = computed(() => sessions.value.reduce((a, s) => a + (s.total_reps ?? 0), 0))
 const daysHit = computed(() => sessions.value.filter(isComplete).length)
 const streak = computed(() => {
   let count = 0
@@ -87,6 +79,11 @@ const streak = computed(() => {
     else break
   }
   return count
+})
+const avgScore = computed(() => {
+  if (!sessions.value.length) return 0
+  const total = sessions.value.reduce((a, s) => a + (s.movement_points ?? 0), 0)
+  return Math.round(total / sessions.value.length)
 })
 </script>
 
@@ -123,26 +120,26 @@ const streak = computed(() => {
           </div>
           <div class="summary-stat">
             <span class="summary-value">{{ daysHit }}</span>
-            <span class="summary-label">Targets hit</span>
+            <span class="summary-label">Days complete</span>
           </div>
           <div class="summary-stat">
             <span class="summary-value">{{ streak }}</span>
-            <span class="summary-label">Current streak</span>
+            <span class="summary-label">Streak</span>
           </div>
           <div class="summary-stat">
-            <span class="summary-value">{{ totalReps.toLocaleString() }}</span>
-            <span class="summary-label">Total reps</span>
+            <span class="summary-value">{{ avgScore }}%</span>
+            <span class="summary-label">Avg score</span>
           </div>
         </div>
 
         <!-- Bar chart card -->
         <div class="chart-card">
           <div class="chart-header">
-            <span class="chart-title">Daily reps</span>
+            <span class="chart-title">Movement Points</span>
             <div class="legend">
               <span class="legend-item">
                 <span class="legend-dot" style="background: var(--success)" />
-                Target hit
+                100 pts
               </span>
               <span class="legend-item">
                 <span class="legend-dot" style="background: var(--accent)" />
@@ -168,41 +165,29 @@ const streak = computed(() => {
                 stroke-width="1"
               />
 
-              <!-- Bars + target markers -->
+              <!-- Bars + score labels -->
               <g v-for="(s, i) in sessions" :key="s.session_id ?? s.date">
                 <!-- Bar -->
                 <rect
                   :x="barX(i)"
-                  :y="barY(s.total_reps)"
+                  :y="barY(s.movement_points)"
                   :width="BAR_W"
-                  :height="barH(s.total_reps)"
+                  :height="barH(s.movement_points)"
                   :fill="isComplete(s) ? 'var(--success)' : 'var(--accent)'"
                   :opacity="isComplete(s) ? 0.85 : 0.7"
                   rx="4"
                   ry="4"
                 />
 
-                <!-- Target line across bar width -->
-                <line
-                  :x1="barX(i)"
-                  :y1="targetY(s.target_pushups)"
-                  :x2="barX(i) + BAR_W"
-                  :y2="targetY(s.target_pushups)"
-                  stroke="var(--text)"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  opacity="0.35"
-                />
-
-                <!-- Rep count above bar -->
+                <!-- Score above bar -->
                 <text
                   :x="barX(i) + BAR_W / 2"
-                  :y="barY(s.total_reps) - 4"
+                  :y="barY(s.movement_points) - 4"
                   text-anchor="middle"
                   font-size="9"
                   fill="var(--text-muted)"
                 >
-                  {{ s.total_reps }}
+                  {{ Math.round(s.movement_points ?? 0) }}%
                 </text>
 
                 <!-- Weekday label -->
@@ -249,15 +234,15 @@ const streak = computed(() => {
                 <div
                   class="mini-bar-fill"
                   :style="{
-                    width: `${Math.min(((s.total_reps ?? 0) / (s.target_pushups ?? 1)) * 100, 100)}%`,
+                    width: `${Math.min(s.movement_points ?? 0, 100)}%`,
                     background: isComplete(s) ? 'var(--success)' : 'var(--accent)',
                   }"
                 />
               </div>
             </div>
             <div class="session-reps-col">
-              <span class="reps-done">{{ s.total_reps ?? 0 }}</span>
-              <span class="reps-target">/ {{ s.target_pushups }}</span>
+              <span class="reps-done">{{ Math.round(s.movement_points ?? 0) }}</span>
+              <span class="reps-target">pts</span>
               <span v-if="isComplete(s)" class="check">✓</span>
             </div>
           </div>
