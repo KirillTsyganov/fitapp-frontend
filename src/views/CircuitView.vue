@@ -3,13 +3,16 @@ import { computed, onMounted, ref } from 'vue'
 import { authFetch } from '@/composables/useAuth.js'
 import { useSessions } from '@/composables/useSessions.js'
 
-const { updateSessionInCache } = useSessions()
+const { updateSessionInCache, removeSessionFromCache } = useSessions()
 
-// Circuit definition (mirrors backend CIRCUIT constant)
-const CIRCUIT_EXERCISES = [
-  { exercise: 'Pushups', reps: 20 },
-  { exercise: 'Lunges', reps: 20 },
-]
+// Circuit exercise names (order mirrors backend CIRCUIT)
+const EXERCISE_NAMES = ['Pushups', 'Lunges']
+
+// Reactive reps value — updated from session data or settings
+const repsPerExercise = ref(20)
+const circuitExercises = computed(() =>
+  EXERCISE_NAMES.map(name => ({ exercise: name, reps: repsPerExercise.value }))
+)
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear()
@@ -42,8 +45,11 @@ const roundsCompleted = ref(0)
 const movementPoints = ref(0)
 const loading = ref(true)
 const saving = ref(false)
+const resetting = ref(false)
 const loadError = ref('')
 const saveError = ref('')
+const resettingError = ref('')
+const showResetConfirm = ref(false)
 
 function resetSession() {
   sessionId.value = null
@@ -58,6 +64,7 @@ function applySession(session) {
   targetRounds.value = session.target_rounds
   roundsCompleted.value = session.rounds_completed ?? 0
   movementPoints.value = session.movement_points ?? 0
+  repsPerExercise.value = session.reps_per_exercise ?? 20
 }
 
 async function loadTodaySession() {
@@ -80,6 +87,7 @@ async function loadTodaySession() {
     if (data.session === null) {
       resetSession()
       sessionDate.value = data.date ?? dateContext.date
+      repsPerExercise.value = data.settings?.reps_per_exercise ?? 20
     } else {
       applySession(data)
     }
@@ -92,7 +100,33 @@ async function loadTodaySession() {
   }
 }
 
-async function generateTarget() {
+function requestDiscard() {
+  if (isComplete.value || resetting.value) return
+  if (roundsCompleted.value > 0) {
+    showResetConfirm.value = true
+  } else {
+    discardSession()
+  }
+}
+
+async function discardSession() {
+  showResetConfirm.value = false
+  if (!sessionId.value || resetting.value) return
+  resetting.value = true
+  resettingError.value = ''
+  try {
+    const res = await authFetch(`/api/sessions/${sessionId.value}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Could not reset session')
+    removeSessionFromCache(sessionId.value)
+    resetSession()
+  } catch {
+    resettingError.value = 'Could not reset. Please try again.'
+  } finally {
+    resetting.value = false
+  }
+}
+
+async function generateTarget(energyLevel) {
   saving.value = true
   saveError.value = ''
 
@@ -100,7 +134,7 @@ async function generateTarget() {
     const res = await authFetch('/api/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(getDateContext()),
+      body: JSON.stringify({ ...getDateContext(), energy_level: energyLevel }),
     })
     if (!res.ok) throw new Error('Unable to create target')
 
@@ -202,11 +236,11 @@ onMounted(loadTodaySession)
       <div v-else-if="!targetRounds" class="generate-section">
         <div class="generate-icon">🎯</div>
         <h2>Ready for today?</h2>
-        <p>Generate your circuit target for {{ sessionDateLabel }}.</p>
+        <p>Pick your energy level to generate today's circuit for {{ sessionDateLabel }}.</p>
         <div class="circuit-preview">
           <span class="circuit-preview-label">1 Round =</span>
           <span
-            v-for="(ex, i) in CIRCUIT_EXERCISES"
+            v-for="(ex, i) in circuitExercises"
             :key="ex.exercise"
             class="circuit-preview-ex"
           >
@@ -214,14 +248,70 @@ onMounted(loadTodaySession)
             {{ ex.reps }} {{ ex.exercise }}
           </span>
         </div>
-        <button class="btn-primary pulse" :disabled="saving" @click="generateTarget">
-          {{ saving ? 'Generating…' : "Generate Today's Circuit" }}
-        </button>
+        <div class="energy-group" :class="{ disabled: saving }">
+          <button
+            class="energy-btn energy-low"
+            :disabled="saving"
+            @click="generateTarget('low')"
+          >
+            🔋 Low
+          </button>
+          <button
+            class="energy-btn energy-standard"
+            :disabled="saving"
+            @click="generateTarget('standard')"
+          >
+            ⚡ Standard
+          </button>
+          <button
+            class="energy-btn energy-high"
+            :disabled="saving"
+            @click="generateTarget('high')"
+          >
+            🚀 High
+          </button>
+        </div>
+        <p v-if="saving" class="generating-hint">Generating…</p>
         <p v-if="saveError" class="input-error">{{ saveError }}</p>
       </div>
 
       <div v-else class="tracker">
-        <div class="session-chip">Circuit for {{ sessionDateLabel }}</div>
+        <div v-if="!isComplete" class="back-tooltip-wrap">
+          <button
+            class="btn-back-arrow"
+            :disabled="resetting"
+            aria-label="Change energy level"
+            @click="requestDiscard"
+          >
+            ←
+          </button>
+          <span class="back-tooltip">Change energy level</span>
+        </div>
+
+        <!-- Confirm overlay: shown when resetting mid-session -->
+        <Transition name="confirm-fade">
+          <div v-if="showResetConfirm" class="confirm-overlay">
+            <p class="confirm-msg">You’ve logged {{ roundsCompleted }} round{{ roundsCompleted !== 1 ? 's' : '' }}. Changing energy level will delete this session and you’ll start fresh.</p>
+            <div class="confirm-actions">
+              <button class="confirm-cancel" @click="showResetConfirm = false">Keep going</button>
+              <button class="confirm-ok" :disabled="resetting" @click="discardSession">
+                {{ resetting ? 'Resetting…' : 'Yes, reset' }}
+              </button>
+            </div>
+            <p v-if="resettingError" class="input-error">{{ resettingError }}</p>
+          </div>
+        </Transition>
+
+        <div class="tracker-header">
+          <div class="session-chip">Circuit for {{ sessionDateLabel }}</div>
+          <div class="round-def">
+            <template v-for="(ex, i) in circuitExercises" :key="ex.exercise">
+              <span v-if="i > 0" class="round-def-sep">+</span>
+              <span class="round-def-ex">{{ ex.reps }} {{ ex.exercise }}</span>
+            </template>
+            <span class="round-def-label">· per round</span>
+          </div>
+        </div>
 
         <div class="ring-wrapper">
           <svg class="ring" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -249,44 +339,7 @@ onMounted(loadTodaySession)
           <div class="ring-label">
             <span class="ring-reps">{{ roundsCompleted }}</span>
             <span class="ring-of">of {{ targetRounds }} rounds</span>
-          </div>
-        </div>
-
-        <div class="stats">
-          <div class="stat">
-            <span class="stat-value">{{ targetRounds }}</span>
-            <span class="stat-label">Target</span>
-          </div>
-          <div class="stat">
-            <span class="stat-value" :class="{ 'text-success': isComplete }">{{ roundsCompleted }}</span>
-            <span class="stat-label">Done</span>
-          </div>
-          <div class="stat">
-            <span class="stat-value" :class="{ 'text-success': isComplete }">
-              {{ isComplete ? '✓' : remainingRounds }}
-            </span>
-            <span class="stat-label">Left</span>
-          </div>
-          <div class="stat">
-            <span class="stat-value" :class="{ 'text-success': isComplete }">
-              {{ movementPoints }}%
-            </span>
-            <span class="stat-label">Score</span>
-          </div>
-        </div>
-
-        <!-- Circuit breakdown -->
-        <div class="circuit-info">
-          <p class="circuit-label">1 Round =</p>
-          <div class="circuit-exercises">
-            <span
-              v-for="(ex, i) in CIRCUIT_EXERCISES"
-              :key="ex.exercise"
-              class="exercise-chip-row"
-            >
-              <span v-if="i > 0" class="exercise-plus">+</span>
-              <span class="exercise-chip">{{ ex.reps }} {{ ex.exercise }}</span>
-            </span>
+            <span class="ring-score" :class="{ 'text-success': isComplete }">{{ movementPoints }}%</span>
           </div>
         </div>
 
@@ -393,6 +446,68 @@ onMounted(loadTodaySession)
   font-weight: 600;
 }
 
+/* Energy profile button group */
+.energy-group {
+  display: flex;
+  gap: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  width: 100%;
+}
+
+.energy-group.disabled {
+  opacity: 0.55;
+}
+
+.energy-btn {
+  flex: 1;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.8rem 0.5rem;
+  transition: filter 0.15s, opacity 0.15s;
+  background: var(--bg-surface);
+  color: var(--text);
+}
+
+.energy-btn + .energy-btn {
+  border-left: 1.5px solid var(--border);
+}
+
+.energy-btn:disabled {
+  cursor: default;
+}
+
+.energy-btn:not(:disabled):hover {
+  filter: brightness(0.93);
+}
+
+.energy-low:not(:disabled):hover,
+.energy-low:focus-visible {
+  background: rgba(100, 160, 240, 0.18);
+  color: #2a6db8;
+}
+
+.energy-standard:not(:disabled):hover,
+.energy-standard:focus-visible {
+  background: rgba(80, 180, 120, 0.18);
+  color: #226e43;
+}
+
+.energy-high:not(:disabled):hover,
+.energy-high:focus-visible {
+  background: rgba(240, 100, 60, 0.18);
+  color: #c03a10;
+}
+
+.generating-hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .tracker {
   display: flex;
   flex-direction: column;
@@ -401,6 +516,15 @@ onMounted(loadTodaySession)
   width: 100%;
   max-width: 420px;
   padding: 2rem;
+  position: relative;
+}
+
+.tracker-header {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .session-chip {
@@ -412,6 +536,138 @@ onMounted(loadTodaySession)
   font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
+}
+
+/* Back arrow button */
+.back-tooltip-wrap {
+  position: absolute;
+  bottom: 1.1rem;
+  left: 1.1rem;
+}
+
+.btn-back-arrow {
+  width: 2.1rem;
+  height: 2.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-soft);
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-back-arrow:hover:not(:disabled) {
+  background: var(--bg-muted, var(--border));
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.btn-back-arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.back-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  background: var(--text);
+  color: var(--bg-surface);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+}
+
+.back-tooltip-wrap:hover .back-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Confirm overlay */
+.confirm-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--bg-surface) 96%, transparent);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  padding: 2rem;
+  z-index: 10;
+}
+
+.confirm-msg {
+  font-size: 0.95rem;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.confirm-cancel {
+  flex: 1;
+  background: var(--bg-soft);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.7rem 1rem;
+  transition: background 0.15s;
+}
+
+.confirm-cancel:hover {
+  background: var(--bg-muted, var(--border));
+}
+
+.confirm-ok {
+  flex: 1;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+  transition: opacity 0.15s;
+}
+
+.confirm-ok:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.confirm-fade-enter-active,
+.confirm-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.confirm-fade-enter-from,
+.confirm-fade-leave-to {
+  opacity: 0;
 }
 
 /* Ring */
@@ -454,83 +710,37 @@ onMounted(loadTodaySession)
   margin-top: 0.25rem;
 }
 
-/* Stats row */
-.stats {
-  display: flex;
-  gap: 0.75rem;
-  align-self: stretch;
-}
-
-.stat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
-  background: var(--bg-soft);
-  border-radius: 14px;
-  padding: 0.75rem 0.5rem;
-}
-
-.stat-value {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Circuit info */
-.circuit-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.circuit-label {
-  font-size: 0.78rem;
+.ring-score {
+  font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0;
+  margin-top: 0.15rem;
+  letter-spacing: 0.03em;
 }
 
-.circuit-exercises {
+/* Round definition row (in tracker header) */
+.round-def {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
+  font-size: 0.82rem;
   flex-wrap: wrap;
   justify-content: center;
 }
 
-.exercise-chip-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.exercise-plus {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.exercise-chip {
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.3rem 0.75rem;
-  font-size: 0.82rem;
-  font-weight: 600;
+.round-def-ex {
   color: var(--text);
+  font-weight: 600;
+}
+
+.round-def-sep {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.round-def-label {
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 /* Complete banner */

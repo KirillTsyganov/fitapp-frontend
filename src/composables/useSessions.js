@@ -44,5 +44,9 @@ export function useSessions() {
     }
   }
 
-  return { sessions, loading, loadError, loadSessions, updateSessionInCache }
+  function removeSessionFromCache(id) {
+    sessions.value = sessions.value.filter(s => s.session_id !== id)
+  }
+
+  return { sessions, loading, loadError, loadSessions, updateSessionInCache, removeSessionFromCache }
 }

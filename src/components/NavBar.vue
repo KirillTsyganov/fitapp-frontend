@@ -55,6 +55,15 @@ function closeMenu() {
         <span class="nav-icon">📊</span>
         Progress
       </RouterLink>
+      <RouterLink
+        to="/settings"
+        class="nav-link"
+        :class="{ active: route.name === 'settings' }"
+        @click="closeMenu"
+      >
+        <span class="nav-icon">⚙️</span>
+        Settings
+      </RouterLink>
     </div>
 
     <div class="sidebar-footer">

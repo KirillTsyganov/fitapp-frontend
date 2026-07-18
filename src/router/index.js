@@ -3,6 +3,7 @@ import LoginView from '@/views/LoginView.vue'
 import CircuitView from '@/views/CircuitView.vue'
 import ProgressView from '@/views/ProgressView.vue'
 import AuthCallbackView from '@/views/AuthCallbackView.vue'
+import SettingsView from '@/views/SettingsView.vue'
 import { checkAuthStatus } from '@/composables/useAuth.js'
 
 const router = createRouter({
@@ -28,6 +29,12 @@ const router = createRouter({
       path: '/progress',
       name: 'progress',
       component: ProgressView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: SettingsView,
       meta: { requiresAuth: true },
     },
   ],
