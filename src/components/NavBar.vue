@@ -56,6 +56,24 @@ function closeMenu() {
         Progress
       </RouterLink>
       <RouterLink
+        to="/flow"
+        class="nav-link"
+        :class="{ active: route.name === 'flow-builder' || route.name === 'flow-runner' }"
+        @click="closeMenu"
+      >
+        <span class="nav-icon">🌊</span>
+        New Flow
+      </RouterLink>
+      <RouterLink
+        to="/flows"
+        class="nav-link"
+        :class="{ active: route.name === 'flows' }"
+        @click="closeMenu"
+      >
+        <span class="nav-icon">📋</span>
+        My Flows
+      </RouterLink>
+      <RouterLink
         to="/settings"
         class="nav-link"
         :class="{ active: route.name === 'settings' }"

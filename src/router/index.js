@@ -4,6 +4,9 @@ import CircuitView from '@/views/CircuitView.vue'
 import ProgressView from '@/views/ProgressView.vue'
 import AuthCallbackView from '@/views/AuthCallbackView.vue'
 import SettingsView from '@/views/SettingsView.vue'
+import SequenceBuilderView from '@/views/SequenceBuilderView.vue'
+import SequenceRunnerView from '@/views/SequenceRunnerView.vue'
+import FlowsView from '@/views/FlowsView.vue'
 import { checkAuthStatus } from '@/composables/useAuth.js'
 
 const router = createRouter({
@@ -35,6 +38,24 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: SettingsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/flows',
+      name: 'flows',
+      component: FlowsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/flow',
+      name: 'flow-builder',
+      component: SequenceBuilderView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/flow/:id',
+      name: 'flow-runner',
+      component: SequenceRunnerView,
       meta: { requiresAuth: true },
     },
   ],
