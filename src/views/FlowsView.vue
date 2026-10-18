@@ -41,7 +41,7 @@ function exerciseSummary(flow) {
     <main class="flows-main">
 
       <div class="page-header">
-        <h1 class="page-title">My Flows</h1>
+        <h1 class="page-title">Timed Sequences</h1>
         <RouterLink to="/flow" class="btn-new">+ New Flow</RouterLink>
       </div>
 

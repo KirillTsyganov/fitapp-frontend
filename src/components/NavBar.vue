@@ -56,22 +56,31 @@ function closeMenu() {
         Progress
       </RouterLink>
       <RouterLink
-        to="/flow"
+        to="/coach"
         class="nav-link"
-        :class="{ active: route.name === 'flow-builder' || route.name === 'flow-runner' }"
+        :class="{ active: route.name === 'coach' }"
         @click="closeMenu"
       >
-        <span class="nav-icon">🌊</span>
-        New Flow
+        <span class="nav-icon">🧠</span>
+        Coach
       </RouterLink>
       <RouterLink
         to="/flows"
         class="nav-link"
-        :class="{ active: route.name === 'flows' }"
+        :class="{ active: ['coach-flows', 'coach-flow-detail', 'coach-flow-run'].includes(route.name) }"
         @click="closeMenu"
       >
         <span class="nav-icon">📋</span>
         My Flows
+      </RouterLink>
+      <RouterLink
+        to="/sequences"
+        class="nav-link"
+        :class="{ active: ['sequences', 'flow-builder', 'flow-runner'].includes(route.name) }"
+        @click="closeMenu"
+      >
+        <span class="nav-icon">🌊</span>
+        Timed Sequences
       </RouterLink>
       <RouterLink
         to="/settings"

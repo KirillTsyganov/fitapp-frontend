@@ -7,6 +7,10 @@ import SettingsView from '@/views/SettingsView.vue'
 import SequenceBuilderView from '@/views/SequenceBuilderView.vue'
 import SequenceRunnerView from '@/views/SequenceRunnerView.vue'
 import FlowsView from '@/views/FlowsView.vue'
+import CoachView from '@/views/CoachView.vue'
+import FlowsLibraryView from '@/views/FlowsLibraryView.vue'
+import FlowDetailView from '@/views/FlowDetailView.vue'
+import FlowRunnerView from '@/views/FlowRunnerView.vue'
 import { checkAuthStatus } from '@/composables/useAuth.js'
 
 const router = createRouter({
@@ -41,8 +45,32 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/coach',
+      name: 'coach',
+      component: CoachView,
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/flows',
-      name: 'flows',
+      name: 'coach-flows',
+      component: FlowsLibraryView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/flows/:id',
+      name: 'coach-flow-detail',
+      component: FlowDetailView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/flows/:id/run',
+      name: 'coach-flow-run',
+      component: FlowRunnerView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/sequences',
+      name: 'sequences',
       component: FlowsView,
       meta: { requiresAuth: true },
     },
