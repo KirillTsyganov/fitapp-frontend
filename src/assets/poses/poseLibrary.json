@@ -300,6 +300,27 @@
     ]
   },
 
+  "good_morning": {
+    "tempo_seconds": 3,
+    "ground_y": 96,
+    "frames": [
+      {
+        "head": [44, 15], "neck": [44, 25], "pelvis": [42, 54],
+        "left_shoulder": [46, 32], "left_elbow": [38, 30], "left_wrist": [44, 25],
+        "right_shoulder": [46, 32], "right_elbow": [39, 31], "right_wrist": [44, 26],
+        "left_hip": [42, 54], "left_knee": [50, 74], "left_ankle": [52, 96], "left_foot": [57, 96],
+        "right_hip": [42, 54], "right_knee": [38, 76], "right_ankle": [31, 94], "right_foot": [36, 96]
+      },
+      {
+        "head": [58, 42], "neck": [54, 48], "pelvis": [28, 56],
+        "left_shoulder": [51, 50], "left_elbow": [48, 44], "left_wrist": [54, 48],
+        "right_shoulder": [51, 50], "right_elbow": [49, 45], "right_wrist": [54, 49],
+        "left_hip": [28, 56], "left_knee": [43, 76], "left_ankle": [52, 96], "left_foot": [57, 96],
+        "right_hip": [28, 56], "right_knee": [38, 76], "right_ankle": [31, 94], "right_foot": [36, 96]
+      }
+    ]
+  },
+
   "standing_active_hamstring_sweep": { "alias_of": "hamstring_sweep" },
   "scapular_cars": { "alias_of": "scapular_plank" },
   "bridge": { "alias_of": "glute_bridge" },
@@ -319,5 +340,8 @@
   "warrior_three": { "alias_of": "hip_airplane" },
   "swimmer": { "alias_of": "prone_swimmer" },
   "prone_pull": { "alias_of": "prone_swimmer" },
-  "prone_extension": { "alias_of": "prone_swimmer" }
+  "prone_extension": { "alias_of": "prone_swimmer" },
+  "kickstand_rdl": { "alias_of": "good_morning" },
+  "kickstand_good_morning": { "alias_of": "good_morning" },
+  "b_stance_hinge": { "alias_of": "good_morning" }
 }

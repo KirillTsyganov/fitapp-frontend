@@ -31,6 +31,7 @@ export const POSE_RULES = [
   // Lower-body dynamics
   { slug: 'hamstring_sweep', keywords: ['sweep'] },
   { slug: 'hip_airplane', keywords: ['airplane', 'arabesque', 'warrior'] },
+  { slug: 'good_morning', keywords: ['good_morning', 'kickstand', 'b_stance'] },
   { slug: 'hip_hinge', keywords: ['hinge', 'deadlift'] },
   { slug: 'hip_hinge', keywords: ['rdl'], requireWordBoundary: true },
   { slug: 'squat', keywords: ['squat', 'lunge', 'split'] },
