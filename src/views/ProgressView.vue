@@ -70,20 +70,17 @@ const avgScore = computed(() => {
   <div class="page">
     <main class="main">
       <div v-if="loading" class="state-card">
-        <div class="state-icon">☁️</div>
         <h2>Loading history</h2>
         <p>Fetching your sessions…</p>
       </div>
 
       <div v-else-if="loadError" class="state-card">
-        <div class="state-icon">⚠️</div>
         <h2>Couldn't load</h2>
         <p>{{ loadError }}</p>
         <button class="btn-primary" @click="() => loadSessions(true)">Try again</button>
       </div>
 
       <div v-else-if="sessions.length === 0" class="state-card">
-        <div class="state-icon">📭</div>
         <h2>No history yet</h2>
         <p>Complete your first session to see it here.</p>
       </div>
@@ -257,11 +254,6 @@ const avgScore = computed(() => {
   max-width: 360px;
   padding: 2.4rem 2rem;
   margin: 4rem auto 0;
-}
-
-.state-icon {
-  font-size: 3.5rem;
-  line-height: 1;
 }
 
 .state-card h2 {

@@ -127,7 +127,6 @@ function newChat() {
 
     <div class="feed">
       <div v-if="!chatMessages.length" class="empty">
-        <div class="empty-icon">🧠</div>
         <h2 class="empty-title">What are we working on today?</h2>
         <div class="starters">
           <button v-for="s in STARTERS" :key="s" class="chip" @click="send(s)">{{ s }}</button>
@@ -272,8 +271,6 @@ function newChat() {
   align-items: center;
   gap: 0.75rem;
 }
-
-.empty-icon { font-size: 2.5rem; }
 
 .empty-title {
   font-size: 1.1rem;

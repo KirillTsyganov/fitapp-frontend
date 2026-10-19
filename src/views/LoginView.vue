@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? ''
 onMounted(async () => {
   const authenticated = await checkAuthStatus()
   if (authenticated) {
-    router.replace({ name: 'pushups' })
+    router.replace({ name: 'circuit' })
   }
 })
 </script>
@@ -18,13 +18,17 @@ onMounted(async () => {
   <div class="login-page">
     <div class="login-card">
       <div class="hero">
-        <div class="hero-icon">💪</div>
-        <h1>PushLog</h1>
-        <p class="tagline">Hit your daily reps. Track your grind.</p>
+        <svg class="hero-mark" viewBox="0 0 32 32" width="44" height="44" aria-hidden="true">
+          <path d="M6 26C6 14.5 13.5 6 26 6c0 12.5-8 20-20 20Z" fill="#2C4A3E" />
+          <path d="M7.5 24.5 20 12" fill="none" stroke="#F9F7F2" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <h1>Quokka</h1>
+        <p class="tagline">Intentional movement and guided training flows.</p>
       </div>
 
       <a :href="`${API_URL}/api/auth/google`" class="google-btn">
-        <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <span class="google-chip">
+          <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
             fill="#4285F4"
@@ -42,6 +46,7 @@ onMounted(async () => {
             fill="#EA4335"
           />
         </svg>
+        </span>
         Continue with Google
       </a>
     </div>
@@ -54,12 +59,12 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: var(--bg-page);
   padding: 1rem;
 }
 
 .login-card {
-  background: var(--bg-surface);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 3rem 2.5rem;
@@ -69,7 +74,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   gap: 2.5rem;
-  box-shadow: 0 28px 60px rgba(46, 90, 72, 0.08);
+  box-shadow: 0 20px 48px rgba(28, 31, 29, 0.06);
 }
 
 .hero {
@@ -80,20 +85,19 @@ onMounted(async () => {
   gap: 0.75rem;
 }
 
-.hero-icon {
-  font-size: 3.5rem;
-  line-height: 1;
+.hero-mark {
+  display: block;
 }
 
 h1 {
   font-size: 2.25rem;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
 }
 
 .tagline {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
@@ -101,9 +105,9 @@ h1 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #fff;
-  color: #3c4043;
-  border: 1px solid var(--border);
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
   border-radius: 10px;
   padding: 0.85rem 1.5rem;
   font-size: 0.95rem;
@@ -112,11 +116,11 @@ h1 {
   text-decoration: none;
   width: 100%;
   justify-content: center;
-  transition: box-shadow 0.2s, transform 0.1s;
+  transition: background 0.2s, transform 0.1s;
 }
 
 .google-btn:hover {
-  box-shadow: 0 16px 32px rgba(46, 90, 72, 0.1);
+  background: var(--accent-hover);
   transform: translateY(-1px);
 }
 
@@ -124,9 +128,20 @@ h1 {
   transform: translateY(0);
 }
 
+.google-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+}
+
 .google-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 </style>

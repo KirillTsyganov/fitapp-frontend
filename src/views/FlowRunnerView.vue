@@ -189,7 +189,10 @@ function exit() {
     </div>
 
     <div v-else-if="isComplete" class="runner-state">
-      <div class="complete-icon">✨</div>
+      <svg class="complete-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <path d="m7.5 12.5 3 3 6-6.5" />
+      </svg>
       <h2 class="complete-title">Workout complete</h2>
       <p class="state-msg">{{ activeFlow.name }} · {{ formatClock(totalSeconds) }}</p>
       <div class="controls">
@@ -214,7 +217,10 @@ function exit() {
           </span>
         </div>
         <button class="btn-mute" :aria-pressed="muted" :title="muted ? 'Unmute cues' : 'Mute cues'" @click="muted = !muted">
-          {{ muted ? '🔕' : '🔔' }}
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10.3 21a1.9 1.9 0 0 0 3.4 0" />
+            <path v-if="muted" d="M3 3l18 18" />
+          </svg>
         </button>
       </div>
 
@@ -237,7 +243,7 @@ function exit() {
 
       <div v-if="isRunning && !isRest" class="chips">
         <span class="chip" :style="{ borderColor: step.meta.accent, color: step.meta.accent }">
-          {{ step.meta.icon }} {{ step.blockName }}
+          {{ step.blockName }}
         </span>
         <span v-if="step.circuit" class="chip muted">Circuit</span>
         <span v-if="step.exercise.rpe" class="chip muted">RPE {{ step.exercise.rpe }}</span>
@@ -253,7 +259,7 @@ function exit() {
 
       <TimerRing
         :progress="ringProgress"
-        :color="isRest ? 'var(--timer-rest)' : 'var(--accent)'"
+        :color="isRest ? 'var(--timer-rest)' : 'var(--highlight)'"
         :active="isRunning && !isPaused"
       >
         <template v-if="!isRunning">
@@ -318,7 +324,7 @@ function exit() {
   font-size: 0.95rem;
 }
 
-.complete-icon { font-size: 3rem; }
+.complete-icon { color: var(--accent); }
 
 .complete-title {
   font-size: 1.6rem;
@@ -343,6 +349,9 @@ function exit() {
 
 .btn-exit,
 .btn-mute {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--bg-soft);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -453,7 +462,7 @@ function exit() {
 
 /* Re-triggers every second because the element is keyed on timeLeft. */
 .ring-time.pulse {
-  color: #d97706;
+  color: var(--highlight);
   animation: pulse 0.9s ease-out;
 }
 

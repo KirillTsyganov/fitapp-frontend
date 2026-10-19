@@ -221,20 +221,17 @@ onMounted(loadTodaySession)
   <div class="page">
     <main class="main">
       <div v-if="loading" class="state-card">
-        <div class="generate-icon">☁️</div>
         <h2>Syncing today</h2>
         <p>Checking your circuit for {{ sessionDateLabel }}.</p>
       </div>
 
       <div v-else-if="loadError" class="state-card">
-        <div class="generate-icon">⚠️</div>
         <h2>Sync paused</h2>
         <p>{{ loadError }}</p>
         <button class="btn-primary" @click="loadTodaySession">Try again</button>
       </div>
 
       <div v-else-if="!targetRounds" class="generate-section">
-        <div class="generate-icon">🎯</div>
         <h2>Ready for today?</h2>
         <p>Pick your energy level to generate today's circuit for {{ sessionDateLabel }}.</p>
         <div class="circuit-preview">
@@ -254,21 +251,21 @@ onMounted(loadTodaySession)
             :disabled="saving"
             @click="generateTarget('low')"
           >
-            🔋 Low
+            Low
           </button>
           <button
             class="energy-btn energy-standard"
             :disabled="saving"
             @click="generateTarget('standard')"
           >
-            ⚡ Standard
+            Standard
           </button>
           <button
             class="energy-btn energy-high"
             :disabled="saving"
             @click="generateTarget('high')"
           >
-            🚀 High
+            High
           </button>
         </div>
         <p v-if="saving" class="generating-hint">Generating…</p>
@@ -344,7 +341,7 @@ onMounted(loadTodaySession)
         </div>
 
         <div v-if="isComplete" class="complete-banner">
-          🎉 Circuit crushed! Great work today.
+          Circuit complete. Great work today.
         </div>
 
         <button
@@ -396,11 +393,6 @@ onMounted(loadTodaySession)
   gap: 1rem;
   max-width: 380px;
   padding: 2.4rem 2rem;
-}
-
-.generate-icon {
-  font-size: 4rem;
-  line-height: 1;
 }
 
 .generate-section h2,
@@ -486,20 +478,20 @@ onMounted(loadTodaySession)
 
 .energy-low:not(:disabled):hover,
 .energy-low:focus-visible {
-  background: rgba(100, 160, 240, 0.18);
-  color: #2a6db8;
+  background: color-mix(in srgb, var(--timer-rest) 16%, transparent);
+  color: #3f5f6a;
 }
 
 .energy-standard:not(:disabled):hover,
 .energy-standard:focus-visible {
-  background: rgba(80, 180, 120, 0.18);
-  color: #226e43;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .energy-high:not(:disabled):hover,
 .energy-high:focus-visible {
-  background: rgba(240, 100, 60, 0.18);
-  color: #c03a10;
+  background: color-mix(in srgb, var(--highlight) 16%, transparent);
+  color: #9a5436;
 }
 
 .generating-hint {

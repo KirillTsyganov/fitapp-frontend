@@ -1,16 +1,28 @@
 :root {
-  --bg: #f3fbf7;
-  --bg-surface: rgba(255, 255, 255, 0.86);
-  --bg-muted: #d7ebe2;
-  --bg-soft: #ecf7f1;
-  --border: #cfe2d8;
-  --accent: #1f8f6a;
-  --accent-strong: #176c52;
-  --accent-glow: rgba(31, 143, 106, 0.2);
-  --success: #15803d;
-  --text: #17352b;
-  --text-muted: #668075;
-  --timer-rest: #4a7fc1;
+  /* Quokka theme */
+  --bg-page: #f9f7f2;
+  --surface: #ffffff;
+  --surface-soft: #f1efe9;
+  --border: #e4dfd5;
+  --text-primary: #1c1f1d;
+  --text-secondary: #5c645f;
+  --accent: #2d4f3f;
+  --accent-hover: #223d31;
+  --accent-soft: rgba(45, 79, 63, 0.08);
+  --highlight: #c06c47;
+  --timer-rest: #5f7f8a;
+  --success: #3e7a55;
+  --error: #b4432f;
+
+  /* Legacy names still referenced by older views; remove once those are migrated. */
+  --bg: var(--bg-page);
+  --bg-surface: var(--surface);
+  --bg-soft: var(--surface-soft);
+  --bg-muted: var(--border);
+  --accent-strong: var(--accent-hover);
+  --accent-glow: var(--accent-soft);
+  --text: var(--text-primary);
+  --text-muted: var(--text-secondary);
 }
 
 *,

@@ -90,7 +90,6 @@ onMounted(loadSettings)
     <main class="main">
       <div class="settings-card">
         <div class="card-header">
-          <span class="card-icon">⚙️</span>
           <h2>Settings</h2>
           <p class="subtitle">Configure your daily circuit targets.</p>
         </div>
@@ -145,14 +144,14 @@ onMounted(loadSettings)
           <div class="range-preview">
             <span class="range-label">Range preview · {{ repsPerExercise }} reps × 2 exercises = {{ repsPerExercise * 2 }} reps/round</span>
             <div class="range-chips">
-              <span class="chip chip-low">🔋 Low: {{ minRounds }}–{{ Math.max(minRounds, minRounds + Math.floor((maxRounds - minRounds) * 0.33)) }}</span>
-              <span class="chip chip-std">⚡ Std: {{ Math.min(maxRounds, minRounds + Math.ceil((maxRounds - minRounds) * 0.34)) }}–{{ Math.max(minRounds, minRounds + Math.floor((maxRounds - minRounds) * 0.66)) }}</span>
-              <span class="chip chip-high">🚀 High: {{ Math.min(maxRounds, minRounds + Math.ceil((maxRounds - minRounds) * 0.66)) }}–{{ maxRounds }}</span>
+              <span class="chip chip-low">Low: {{ minRounds }}–{{ Math.max(minRounds, minRounds + Math.floor((maxRounds - minRounds) * 0.33)) }}</span>
+              <span class="chip chip-std">Std: {{ Math.min(maxRounds, minRounds + Math.ceil((maxRounds - minRounds) * 0.34)) }}–{{ Math.max(minRounds, minRounds + Math.floor((maxRounds - minRounds) * 0.66)) }}</span>
+              <span class="chip chip-high">High: {{ Math.min(maxRounds, minRounds + Math.ceil((maxRounds - minRounds) * 0.66)) }}–{{ maxRounds }}</span>
             </div>
           </div>
 
           <p v-if="saveError" class="input-error">{{ saveError }}</p>
-          <p v-if="saveSuccess" class="save-success">✓ Settings saved!</p>
+          <p v-if="saveSuccess" class="save-success">Settings saved</p>
 
           <button class="btn-primary" :disabled="saving" @click="saveSettings">
             {{ saving ? 'Saving…' : 'Save Settings' }}
@@ -198,11 +197,6 @@ onMounted(loadSettings)
   align-items: center;
   gap: 0.4rem;
   text-align: center;
-}
-
-.card-icon {
-  font-size: 3rem;
-  line-height: 1;
 }
 
 .card-header h2 {
@@ -290,9 +284,9 @@ onMounted(loadSettings)
   padding: 0.3rem 0.75rem;
 }
 
-.chip-low  { background: rgba(100, 160, 240, 0.15); color: #3a80c8; }
-.chip-std  { background: rgba(80, 180, 120, 0.15);  color: #2d8a56; }
-.chip-high { background: rgba(240, 100, 60, 0.15);  color: #d44a20; }
+.chip-low  { background: color-mix(in srgb, var(--timer-rest) 16%, transparent); color: #3f5f6a; }
+.chip-std  { background: var(--accent-soft); color: var(--accent); }
+.chip-high { background: color-mix(in srgb, var(--highlight) 16%, transparent); color: #9a5436; }
 
 .btn-primary {
   background: var(--accent);

@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth.js'
+import BrandLogo from '@/components/BrandLogo.vue'
+import NavIcon from '@/components/NavIcon.vue'
 
 const { user, logout } = useAuth()
 const route = useRoute()
@@ -32,8 +34,7 @@ function closeMenu() {
   <!-- Sidebar -->
   <nav class="sidebar" :class="{ open: isOpen }">
     <div class="sidebar-brand">
-      <span class="brand-icon">💪</span>
-      <span class="brand-name">FitLog</span>
+      <BrandLogo />
     </div>
 
     <div class="nav-links">
@@ -43,7 +44,7 @@ function closeMenu() {
         :class="{ active: route.name === 'circuit' }"
         @click="closeMenu"
       >
-        <span class="nav-icon">🎯</span>
+        <NavIcon name="today" />
         Today
       </RouterLink>
       <RouterLink
@@ -52,7 +53,7 @@ function closeMenu() {
         :class="{ active: route.name === 'progress' }"
         @click="closeMenu"
       >
-        <span class="nav-icon">📊</span>
+        <NavIcon name="progress" />
         Progress
       </RouterLink>
       <RouterLink
@@ -61,7 +62,7 @@ function closeMenu() {
         :class="{ active: route.name === 'coach' }"
         @click="closeMenu"
       >
-        <span class="nav-icon">🧠</span>
+        <NavIcon name="coach" />
         Coach
       </RouterLink>
       <RouterLink
@@ -70,7 +71,7 @@ function closeMenu() {
         :class="{ active: ['coach-flows', 'coach-flow-detail', 'coach-flow-run'].includes(route.name) }"
         @click="closeMenu"
       >
-        <span class="nav-icon">📋</span>
+        <NavIcon name="flows" />
         My Flows
       </RouterLink>
       <RouterLink
@@ -79,7 +80,7 @@ function closeMenu() {
         :class="{ active: route.name === 'pose-sandbox' }"
         @click="closeMenu"
       >
-        <span class="nav-icon">🕺</span>
+        <NavIcon name="pose" />
         Pose Sandbox
       </RouterLink>
       <RouterLink
@@ -88,7 +89,7 @@ function closeMenu() {
         :class="{ active: route.name === 'settings' }"
         @click="closeMenu"
       >
-        <span class="nav-icon">⚙️</span>
+        <NavIcon name="settings" />
         Settings
       </RouterLink>
     </div>
@@ -111,8 +112,7 @@ function closeMenu() {
   left: 0;
   bottom: 0;
   width: 220px;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(20px);
+  background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -129,17 +129,6 @@ function closeMenu() {
   padding: 0.25rem 0.5rem 1.5rem;
   border-bottom: 1px solid var(--border);
   margin-bottom: 1rem;
-}
-
-.brand-icon {
-  font-size: 1.4rem;
-}
-
-.brand-name {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.01em;
 }
 
 /* ── Nav links ── */
@@ -161,23 +150,29 @@ function closeMenu() {
   font-size: 0.95rem;
   font-weight: 500;
   transition: background 0.15s, color 0.15s;
+  position: relative;
 }
 
 .nav-link:hover {
-  background: var(--bg-soft);
-  color: var(--text);
+  background: var(--surface-soft);
+  color: var(--text-primary);
 }
 
 .nav-link.active {
-  background: var(--accent-glow);
-  color: var(--accent-strong);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 600;
 }
 
-.nav-icon {
-  font-size: 1.1rem;
-  width: 1.4rem;
-  text-align: center;
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
 }
 
 /* ── Footer ── */
@@ -199,8 +194,8 @@ function closeMenu() {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--accent-glow);
-  color: var(--accent-strong);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-size: 0.8rem;
   font-weight: 700;
   display: flex;
@@ -246,8 +241,7 @@ function closeMenu() {
   height: 40px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
+  background: var(--surface);
   cursor: pointer;
   flex-direction: column;
   align-items: center;

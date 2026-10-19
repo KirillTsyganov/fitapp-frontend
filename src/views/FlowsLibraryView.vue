@@ -64,7 +64,6 @@ onMounted(() => {
       </div>
 
       <div v-else-if="!savedFlows.length && !errorMessage" class="empty-state">
-        <div class="empty-icon">🌊</div>
         <h2 class="empty-title">No flows yet</h2>
         <p class="empty-sub">Chat with the coach to generate your first routine.</p>
         <RouterLink to="/coach" class="btn-new">Talk to the Coach</RouterLink>
@@ -103,8 +102,8 @@ onMounted(() => {
 
 .page-title {
   font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .btn-new {
@@ -119,7 +118,7 @@ onMounted(() => {
 }
 
 .btn-new:hover {
-  background: var(--accent-strong);
+  background: var(--accent-hover);
 }
 
 .filters {
@@ -196,8 +195,6 @@ onMounted(() => {
   align-items: center;
   gap: 0.75rem;
 }
-
-.empty-icon { font-size: 2.5rem; }
 
 .empty-title {
   font-size: 1.15rem;

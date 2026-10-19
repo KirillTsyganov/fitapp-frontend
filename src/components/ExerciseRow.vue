@@ -130,7 +130,10 @@ onBeforeUnmount(() => {
       :aria-controls="popId"
       :aria-label="`Movement details: ${exercise.name}`"
     >
-      ℹ
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5M12 8h.01" />
+      </svg>
     </button>
 
     <Teleport to="body">
@@ -233,22 +236,17 @@ onBeforeUnmount(() => {
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: capitalize;
-  background: var(--bg-muted);
-  color: var(--text-muted);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
-
-.modality-weights { background: #fde8d4; color: #9a4a0e; }
-.modality-calisthenics { background: #dbeafe; color: #1e4f9a; }
-.modality-mobility { background: #d7f3e6; color: var(--accent-strong); }
-.modality-yoga { background: #ece1f9; color: #6b3fa0; }
 
 .badge {
   padding: 0.1rem 0.5rem;
   border-radius: 20px;
   font-size: 0.72rem;
   font-weight: 600;
-  background: var(--accent-glow);
-  color: var(--accent-strong);
+  background: color-mix(in srgb, var(--highlight) 12%, transparent);
+  color: color-mix(in srgb, var(--highlight) 80%, #000);
 }
 
 .badge.muted {
@@ -258,6 +256,9 @@ onBeforeUnmount(() => {
 
 .info-btn {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -286,10 +287,10 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 0.65rem;
   padding: 0.9rem 1rem;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--accent);
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(23, 53, 43, 0.16);
+  box-shadow: 0 10px 30px rgba(28, 31, 29, 0.14);
   /* Hover opens it, so it must never take the pointer away from the row. */
   pointer-events: none;
 }

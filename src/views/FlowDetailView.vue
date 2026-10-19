@@ -65,7 +65,6 @@ watch(
 
         <section v-for="block in blocks" :key="block.block_name" class="block">
           <h2 class="block-title" :style="{ borderColor: block.meta.accent }">
-            <span>{{ block.meta.icon }}</span>
             {{ block.block_name }}
             <span v-if="block.structure === 'circuit'" class="structure-tag">
               Circuit · {{ Math.max(...block.exercises.map((e) => e.sets)) }} rounds
@@ -145,8 +144,6 @@ watch(
 }
 
 .badge.focus {
-  background: #dbeafe;
-  color: #1e4f9a;
   text-transform: capitalize;
 }
 

@@ -1,10 +1,10 @@
-const FALLBACK_META = { icon: '▪️', accent: 'var(--accent)' }
+const FALLBACK_META = { accent: 'var(--accent)' }
 
 export const BLOCK_META = [
-  { name: 'Prep / Dynamic Flow', icon: '🔥', accent: '#d97706' },
-  { name: 'Primary Skill / Strength', icon: '💪', accent: '#1f8f6a' },
-  { name: 'Accessory / Hypertrophy', icon: '🧱', accent: '#4a7fc1' },
-  { name: 'Down-Regulation / Cool Down', icon: '🌙', accent: '#7c5cb8' },
+  { name: 'Prep / Dynamic Flow', accent: '#c06c47' },
+  { name: 'Primary Skill / Strength', accent: '#2d4f3f' },
+  { name: 'Accessory / Hypertrophy', accent: '#5f7f8a' },
+  { name: 'Down-Regulation / Cool Down', accent: '#8c7a56' },
 ]
 
 // Used only when the schema's rest_seconds is null or 0.

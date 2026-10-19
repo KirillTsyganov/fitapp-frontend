@@ -6,10 +6,8 @@ body {
 }
 
 body {
-  background:
-    radial-gradient(circle at top, rgba(186, 235, 214, 0.7), transparent 32%),
-    linear-gradient(180deg, #f9fdfb 0%, var(--bg) 100%);
-  color: var(--text);
+  background: var(--bg-page);
+  color: var(--text-primary);
   font-family: 'Avenir Next', 'Segoe UI', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }

@@ -12,7 +12,7 @@ defineProps({
 <template>
   <div class="ring-wrap">
     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="ring-svg">
-      <circle cx="100" cy="100" :r="RADIUS" fill="none" stroke="var(--bg-muted)" stroke-width="10" />
+      <circle cx="100" cy="100" :r="RADIUS" fill="none" stroke="var(--border)" stroke-width="10" />
       <circle
         cx="100"
         cy="100"

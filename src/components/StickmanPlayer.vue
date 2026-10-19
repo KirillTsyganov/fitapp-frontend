@@ -134,24 +134,25 @@ const groundY = computed(() => props.poseData?.ground_y ?? 96)
   max-width: 100%;
 }
 .ground {
-  stroke: var(--border, #334155);
+  stroke: var(--border);
   stroke-width: 1;
   stroke-dasharray: 2 2;
 }
 .bone {
-  stroke: var(--accent, #3b82f6);
+  stroke: var(--accent);
   stroke-width: 3;
   stroke-linecap: round;
 }
 .bone.back {
-  opacity: 0.45;
+  stroke: var(--text-secondary);
+  opacity: 0.55;
   stroke-width: 2.5;
 }
 .head {
-  fill: var(--accent, #3b82f6);
+  fill: var(--accent);
 }
 .node {
-  fill: var(--bg-surface, #fff);
+  fill: var(--surface);
   opacity: 0.85;
 }
 .node.back {
