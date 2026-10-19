@@ -83,6 +83,15 @@ function closeMenu() {
         Timed Sequences
       </RouterLink>
       <RouterLink
+        to="/pose-sandbox"
+        class="nav-link"
+        :class="{ active: route.name === 'pose-sandbox' }"
+        @click="closeMenu"
+      >
+        <span class="nav-icon">🕺</span>
+        Pose Sandbox
+      </RouterLink>
+      <RouterLink
         to="/settings"
         class="nav-link"
         :class="{ active: route.name === 'settings' }"

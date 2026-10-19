@@ -10,6 +10,7 @@ export interface ExerciseItem {
   name: string
   modality: Modality
   target_pattern: string
+  animation_slug?: string | null
   sets: number
   reps_or_duration: string
   allocated_seconds?: number | null

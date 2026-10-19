@@ -7,6 +7,8 @@ const pinnedId = ref(null)
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, reactive, useId, watch } from 'vue'
+import StickmanPlayer from '@/components/StickmanPlayer.vue'
+import { getPoseData } from '@/utils/poseLookup.js'
 
 const HOVER_DELAY_MS = 120
 const HOVER_CLOSE_DELAY_MS = 80
@@ -29,6 +31,9 @@ const modalityClass = computed(() => `modality-${props.exercise.modality}`)
 const pinned = computed(() => pinnedId.value === popId)
 const open = computed(() => hovering.value || pinned.value)
 const pattern = computed(() => (props.exercise.target_pattern ?? '').replace(/_/g, ' '))
+const poseData = computed(() =>
+  getPoseData(props.exercise.animation_slug, props.exercise.target_pattern, props.exercise.name),
+)
 
 function onEnter(e) {
   if (e.pointerType !== 'mouse') return
@@ -144,6 +149,10 @@ onBeforeUnmount(() => {
             <span class="preview-name">{{ exercise.name }}</span>
             <span class="tag" :class="modalityClass">{{ exercise.modality }}</span>
             <span v-if="exercise.rpe" class="badge">RPE {{ exercise.rpe }}</span>
+          </div>
+
+          <div class="preview-anim">
+            <StickmanPlayer :pose-data="poseData" :size="120" />
           </div>
 
           <div class="preview-meta">
@@ -297,6 +306,14 @@ onBeforeUnmount(() => {
   font-weight: 700;
   font-size: 1rem;
   color: var(--text);
+}
+
+.preview-anim {
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 0;
+  background: var(--bg-soft);
+  border-radius: 10px;
 }
 
 .preview-sections {

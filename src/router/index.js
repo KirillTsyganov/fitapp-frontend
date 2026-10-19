@@ -11,6 +11,7 @@ import CoachView from '@/views/CoachView.vue'
 import FlowsLibraryView from '@/views/FlowsLibraryView.vue'
 import FlowDetailView from '@/views/FlowDetailView.vue'
 import FlowRunnerView from '@/views/FlowRunnerView.vue'
+import PoseSandboxView from '@/views/PoseSandboxView.vue'
 import { checkAuthStatus } from '@/composables/useAuth.js'
 
 const router = createRouter({
@@ -84,6 +85,12 @@ const router = createRouter({
       path: '/flow/:id',
       name: 'flow-runner',
       component: SequenceRunnerView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/pose-sandbox',
+      name: 'pose-sandbox',
+      component: PoseSandboxView,
       meta: { requiresAuth: true },
     },
   ],

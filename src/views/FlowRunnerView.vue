@@ -4,6 +4,8 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useCoach } from '@/composables/useCoach.js'
 import { buildTimeline, formatClock } from '@/utils/flowSteps.js'
 import TimerRing from '@/components/TimerRing.vue'
+import StickmanPlayer from '@/components/StickmanPlayer.vue'
+import { getPoseData } from '@/utils/poseLookup.js'
 
 const TICK_MS = 200
 const COUNTDOWN_SECONDS = 3
@@ -34,6 +36,10 @@ const totalSeconds = computed(() => timeline.value.totalSeconds)
 const step = computed(() => steps.value[index.value] ?? null)
 const isRest = computed(() => step.value?.kind === 'rest')
 const nextWork = computed(() => steps.value.slice(index.value + 1).find((s) => s.kind === 'work') ?? null)
+const poseData = computed(() => {
+  const ex = step.value?.exercise
+  return ex ? getPoseData(ex.animation_slug, ex.target_pattern, ex.name) : null
+})
 const overallPct = computed(() => (totalSeconds.value ? Math.min(100, (elapsed.value / totalSeconds.value) * 100) : 0))
 const isCountingDown = computed(
   () => isRunning.value && !isPaused.value && timeLeft.value >= 1 && timeLeft.value <= COUNTDOWN_SECONDS,
@@ -237,6 +243,14 @@ function exit() {
         <span v-if="step.exercise.rpe" class="chip muted">RPE {{ step.exercise.rpe }}</span>
       </div>
 
+      <StickmanPlayer
+        v-if="isRunning && !isRest && poseData"
+        class="runner-anim"
+        :pose-data="poseData"
+        :playing="!isPaused"
+        :size="140"
+      />
+
       <TimerRing
         :progress="ringProgress"
         :color="isRest ? 'var(--timer-rest)' : 'var(--accent)'"
@@ -405,6 +419,10 @@ function exit() {
   gap: 0.4rem;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.runner-anim {
+  align-self: center;
 }
 
 .chip {
