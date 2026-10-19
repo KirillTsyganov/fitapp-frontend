@@ -37,7 +37,7 @@ onMounted(() => {
     <main class="library-main">
       <div class="page-header">
         <h1 class="page-title">My Flows</h1>
-        <RouterLink to="/coach" class="btn-new">+ New with Coach</RouterLink>
+        <RouterLink to="/coach" class="btn-new">+ New Flow</RouterLink>
       </div>
 
       <div v-if="savedFlows.length" class="filters">

@@ -74,15 +74,6 @@ function closeMenu() {
         My Flows
       </RouterLink>
       <RouterLink
-        to="/sequences"
-        class="nav-link"
-        :class="{ active: ['sequences', 'flow-builder', 'flow-runner'].includes(route.name) }"
-        @click="closeMenu"
-      >
-        <span class="nav-icon">🌊</span>
-        Timed Sequences
-      </RouterLink>
-      <RouterLink
         to="/pose-sandbox"
         class="nav-link"
         :class="{ active: route.name === 'pose-sandbox' }"
